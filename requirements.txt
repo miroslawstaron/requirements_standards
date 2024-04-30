@@ -17,7 +17,7 @@ cffi==1.16.0
 charset-normalizer==3.3.2
 click==8.1.7
 comm==0.2.1
-contourpy==1.2.0
+contourpy
 cycler==0.12.1
 debugpy==1.8.1
 decorator==5.1.1
@@ -41,7 +41,7 @@ huggingface-hub==0.21.4
 idna==3.6
 importlib_resources==6.4.0
 ipykernel==6.29.3
-ipython==8.22.2
+ipython
 ipywidgets==8.1.2
 isoduration==20.11.0
 jedi==0.19.1
