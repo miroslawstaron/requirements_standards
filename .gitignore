@@ -17,3 +17,8 @@ output_requirements_distances.xlsx
 output__w15__23_A3.xlsx
 output_reqs_distances_w15__23_A3.xlsx
 ~$output_reqs_distances_w15__23_A3.xlsx
+~$output_requirements_generated.xlsx
+output_requirements_distances_g_min.xlsx
+output_requirements_temp.xlsx
+output_requirements_generated_cont.xlsx
+output_requirements_generated_baseline_17_reqs.xlsx
