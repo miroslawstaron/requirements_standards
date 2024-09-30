@@ -9,7 +9,7 @@ def ask_llm(paragraph):
     url = 'http://localhost:11434/api/generate'
     data = {
         "model": "llama3.1:70b",
-        "prompt": "You're part of a system that generates functional requirements about latency based on 3GPP standards. Based on just the following paragraph: '{paragraph}', is it enough context to make it possible to generate an accurate and concise requirement? Answer only using one word 'YES', 'NO', or 'UNSURE' if more context is needed.".format(paragraph=paragraph),
+        "prompt": "You're part of a system that generates functional requirements about latency based on 3GPP standards. Your objective is to ensure the following paragraph has enough context to possibly become a valid requirement: '{paragraph}'. Answer only using one word, 'POSSIBLE' or 'NO'. 'NO' means that the paragraph is too short (likely not a full sentence), is a heading, a sidenote not containing relevant information or similar." .format(paragraph=paragraph),
         "stream": False
         }
     headers = {'Content-Type': 'application/json'}
@@ -40,12 +40,12 @@ def process_docx_files_in_folder(folder_path, search_word, output_csv):
                 doc = Document(file_path)
                 found_paragraphs = extract_paragraphs_with_word(doc, search_word, filename)
                 for filename, section, paragraph in found_paragraphs:
-                    csvwriter.writerow([filename[:-5], section, paragraph, ask_obama(paragraph)])
+                    csvwriter.writerow([filename[:-5], section, paragraph, ask_llm(paragraph)])
 
 
-folder_path = "standards/test_documents"
+folder_path = "standards/23_standards"
 keywords = ["latency", "latencies"]
 ignored_sections = ["References", "Appendix", "Definitions", "Abbreviations"]
-output = "latency_paragraphs.csv"
+output = "outputs/latency_paragraphs.csv"
 
 process_docx_files_in_folder(folder_path, keywords, output)
