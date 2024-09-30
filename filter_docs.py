@@ -1,6 +1,21 @@
 import os
 import csv
 from docx import Document
+import requests
+import json
+
+
+def ask_llm(paragraph):
+    url = 'http://localhost:11434/api/generate'
+    data = {
+        "model": "llama3.1:70b",
+        "prompt": "You're part of a system that generates functional requirements about latency based on 3GPP standards. Based on just the following paragraph: '{paragraph}', is it enough context to make it possible to generate an accurate and concise requirement? Answer only using one word 'YES', 'NO', or 'UNSURE' if more context is needed.".format(paragraph=paragraph),
+        "stream": False
+        }
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(url, data=json.dumps(data), headers=headers)
+    json_data = json.loads(response.text)
+    return json_data['response']
 
 def extract_paragraphs_with_word(doc, keywords, filename):
     paragraphs = []
@@ -17,7 +32,7 @@ def extract_paragraphs_with_word(doc, keywords, filename):
 def process_docx_files_in_folder(folder_path, search_word, output_csv):
     with open(output_csv, 'w', newline='', encoding='utf-8') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=';')
-        csvwriter.writerow(['File', 'Section', 'Paragraph'])
+        csvwriter.writerow(['File', 'Section', 'Paragraph', 'LLM response'])
         for filename in os.listdir(folder_path):
             if filename.endswith('.docx'):
                 file_path = os.path.join(folder_path, filename)
@@ -25,7 +40,7 @@ def process_docx_files_in_folder(folder_path, search_word, output_csv):
                 doc = Document(file_path)
                 found_paragraphs = extract_paragraphs_with_word(doc, search_word, filename)
                 for filename, section, paragraph in found_paragraphs:
-                    csvwriter.writerow([filename[:-5], section, paragraph])
+                    csvwriter.writerow([filename[:-5], section, paragraph, ask_obama(paragraph)])
 
 
 folder_path = "standards/test_documents"
