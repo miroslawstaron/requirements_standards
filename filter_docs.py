@@ -19,37 +19,31 @@ def ask_llm(paragraph):
 
 def extract_paragraphs_with_keywords(doc, keywords, filename):
     paragraphs = []
+    requirements = []
     current_section = ""
+    unit_regex = re.compile(rf'\b\d+\s*{re.escape("ms")}\b\.?', re.IGNORECASE)
+    requirement_regex = re.compile(r'^\[\w+[\-\.\d]*\]', re.IGNORECASE)
     for paragraph in doc.paragraphs:
         if paragraph.style.name.startswith('Heading'):
             current_section = paragraph.text
             continue
+        # Check if the paragraph contains any of the keywords
         if any(keyword.lower() in paragraph.text.lower() for keyword in keywords):
+            # Check if the section is not ignored
             if current_section != "" and not any(ignored_section in current_section for ignored_section in ignored_sections):
                 paragraphs.append((filename, current_section, paragraph.text))
-    return paragraphs
-
-def extract_paragraphs_with_units(doc, unit, filename):
-    paragraphs = []
-    current_section = ""
-    
-    # Regex to capture units like "20ms", "20 ms", "20ms."
-    unit_regex = re.compile(rf'\b\d+\s*{re.escape(unit)}\b\.?', re.IGNORECASE)
-    
-    for paragraph in doc.paragraphs:
-        if paragraph.style.name.startswith('Heading'):
-            current_section = paragraph.text
-            continue
-        
-        # Check if the paragraph contains any units matching the regex pattern
-        if re.search(unit_regex, paragraph.text):
-            if current_section != "" and not any(ignored_section in current_section for ignored_section in ignored_sections):
+        # Check if the paragraph contains a ms unit
+        elif unit_regex.search(paragraph.text):
+            # Check if the paragraph is a requirement (follows the pattern [R-X...])
+            if requirement_regex.search(paragraph.text):
+                requirements.append((filename, current_section, paragraph.text))
+            else:
                 paragraphs.append((filename, current_section, paragraph.text))
-    
-    return paragraphs
+    return paragraphs, requirements
 
-def process_docx_files_in_folder(folder_path, unit, search_word, output_csv, output_units_csv):
-    
+
+def process_docx_files_in_folder(folder_path, search_word, output_csv):
+    requirements = []
     with open(output_csv, 'w', newline='', encoding='utf-8') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=';')
         csvwriter.writerow(['File', 'Chapter', 'Paragraph', 'LLM response'])
@@ -58,29 +52,19 @@ def process_docx_files_in_folder(folder_path, unit, search_word, output_csv, out
                 file_path = os.path.join(folder_path, filename)
                 print(f"Processing file: {file_path}")
                 doc = Document(file_path)
-                found_paragraphs = extract_paragraphs_with_keywords(doc, search_word, filename)
+                found_paragraphs, found_requirements = extract_paragraphs_with_keywords(doc, search_word, filename)
+                requirements.extend(found_requirements)
                 for filename, section, paragraph in found_paragraphs:
-                    csvwriter.writerow([filename[:-5], section, paragraph, ask_llm(paragraph)])
-
-    with open(output_units_csv, 'w', newline='', encoding='utf-8') as csvfile:
+                    csvwriter.writerow([filename[:-5], section, paragraph, "POSSIBLE"])
+    with open("outputs/requirements.csv", 'w', newline='', encoding='utf-8') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=';')
-        csvwriter.writerow(['File', 'Chapter', 'Paragraph'])
-        for filename in os.listdir(folder_path):
-            if filename.endswith('.docx'):
-                file_path = os.path.join(folder_path, filename)
-                print(f"Processing file: {file_path}")
-                doc = Document(file_path)
-                found_paragraphs = extract_paragraphs_with_units(doc, unit, filename)
-                
-                for filename, section, paragraph in found_paragraphs:
-                    csvwriter.writerow([filename[:-5], section, paragraph])
-
+        csvwriter.writerow(['File', 'Chapter', 'Requirement'])
+        for filename, section, paragraph in requirements:
+            csvwriter.writerow([filename[:-5], section, paragraph, ask_llm(paragraph)])
 
 folder_path = "standards/22_standards"
 keywords = ["latency", "latencies"]
-unit = "ms"
 ignored_sections = ["References", "Appendix", "Definitions", "Abbreviations"]
 output = "outputs/latency_paragraphs.csv"
-output_units = "outputs/ms_paragraphs.csv"
 
-process_docx_files_in_folder(folder_path, unit, keywords, output, output_units)
+process_docx_files_in_folder(folder_path, keywords, output)
