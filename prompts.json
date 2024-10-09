@@ -1,0 +1,3 @@
+{
+    "verify_context": "You're part of a system that generates requirements about latency based on 3GPP standards. Your objective is to ensure the following paragraph has enough context to become a valid requirement: '{paragraph}'. Answer only using one word, 'POSSIBLE' or 'NO'. 'NO' means that the paragraph is too short (likely not a full sentence), is a heading, a sidenote not containing relevant information or similar."
+}
