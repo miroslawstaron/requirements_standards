@@ -55,7 +55,7 @@ def process_docx_files_in_folder(folder_path, search_word, output_csv):
                 found_paragraphs, found_requirements = extract_paragraphs_with_keywords(doc, search_word, filename)
                 requirements.extend(found_requirements)
                 for filename, section, paragraph in found_paragraphs:
-                    csvwriter.writerow([filename[:-5], section, paragraph, "POSSIBLE"])
+                    csvwriter.writerow([filename[:-5], section, paragraph, ask_llm(paragraph)])
     with open("outputs/requirements.csv", 'w', newline='', encoding='utf-8') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=';')
         csvwriter.writerow(['File', 'Chapter', 'Requirement'])
