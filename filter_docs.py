@@ -9,7 +9,7 @@ def ask_llm(paragraph):
     url = 'http://localhost:11434/api/generate'
     data = {
         "model": "llama3.1:70b",
-        "prompt": prompts['verify_context'],
+        "prompt": prompts['verify_context'] + paragraph,
         "stream": False
         }
     headers = {'Content-Type': 'application/json'}
