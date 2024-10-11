@@ -41,3 +41,5 @@ classified_requirements.xlsx
 output_not_covered_generated.xlsx
 output_partially_covered_generated.xlsx
 topic_relevant.xlsx
+0_instruct_ollama.ipynb
+0_instruct_ollama.ipynb
