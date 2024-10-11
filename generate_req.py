@@ -24,6 +24,8 @@ def generate_req(file):
         paragraph = column[i]
         response = ask_llm(paragraph)
         df.at[i, 'Requirement'] = response
+    # Save the new dataframe to a new csv file
+    df.to_csv('outputs/requirements.csv', sep=';', index=False)
 
 
 with open('prompts.json', 'r') as f:
