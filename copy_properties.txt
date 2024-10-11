@@ -1,0 +1,33 @@
+Sub CopyDocumentProperties()
+    Dim sourceDoc As Document
+    Dim targetDoc As Document
+    Dim prop As DocumentProperty
+
+    ' Change these file paths to your actual file paths
+    Set sourceDoc = Documents.Open("C:\Users\Will\requirements_standards\22_standards_temp\22104.docx")
+    Set targetDoc = Documents.Open("C:\Users\Will\requirements_standards\22_standards_temp\22263.docx")
+
+    ' Copy Built-in Document Properties
+    For Each prop In sourceDoc.BuiltInDocumentProperties
+        On Error Resume Next
+        targetDoc.BuiltInDocumentProperties(prop.Name).Value = prop.Value
+        On Error GoTo 0
+    Next prop
+
+    ' Copy Custom Document Properties
+    For Each prop In sourceDoc.CustomDocumentProperties
+        On Error Resume Next
+        targetDoc.CustomDocumentProperties(prop.Name).Value = prop.Value
+        On Error GoTo 0
+    Next prop
+
+    ' Save and close the target document
+    targetDoc.Save
+    targetDoc.Close
+
+    ' Close the source document
+    sourceDoc.Close
+
+    MsgBox "Properties copied successfully!"
+End Sub
+
