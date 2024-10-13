@@ -1,0 +1,17 @@
+{
+    "series_no": "23",
+    "indexes": [
+        {
+            "name": "501",
+            "version": "i22"
+        },
+        {
+            "name": "502",
+            "version": "latest"
+        },
+        {
+            "name": "503",
+            "version": "latest"
+        }
+    ]
+}
