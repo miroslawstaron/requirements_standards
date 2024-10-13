@@ -6,7 +6,7 @@ import json
 import re
 
 def ask_llm(paragraph):
-    url = 'http://localhost:11434/api/generate'
+    url = 'http://localhost:11435/api/generate'
     data = {
         "model": "llama3.1:70b",
         "prompt": prompts['verify_context'] + paragraph,
@@ -44,9 +44,14 @@ def extract_paragraphs_with_keywords(doc, keywords, filename):
 
 def process_docx_files_in_folder(folder_path, search_word, output_csv):
     requirements = []
-    with open(output_csv, 'w', newline='', encoding='utf-8') as csvfile:
-        csvwriter = csv.writer(csvfile, delimiter=';')
-        csvwriter.writerow(['File', 'Chapter', 'Paragraph', 'LLM response'])
+    with open(output_csv[0], 'w', newline='', encoding='utf-8') as csvfile_possible, \
+         open(output_csv[1], 'w', newline='', encoding='utf-8') as csvfile_no:
+        csvwriter_possible = csv.writer(csvfile_possible, delimiter=';')
+        csvwriter_no = csv.writer(csvfile_no, delimiter=';')
+
+        csvwriter_possible.writerow(['File', 'Chapter', 'Paragraph', 'LLM response'])
+        csvwriter_no.writerow(['File', 'Chapter', 'Paragraph', 'LLM response'])
+
         for filename in os.listdir(folder_path):
             if filename.endswith('.docx'):
                 file_path = os.path.join(folder_path, filename)
@@ -55,12 +60,16 @@ def process_docx_files_in_folder(folder_path, search_word, output_csv):
                 found_paragraphs, found_requirements = extract_paragraphs_with_keywords(doc, search_word, filename)
                 requirements.extend(found_requirements)
                 for filename, section, paragraph in found_paragraphs:
-                    csvwriter.writerow([filename[:-5], section, paragraph, ask_llm(paragraph)])
+                    llm_response = ask_llm(paragraph)
+                    if llm_response == "NO":
+                        csvwriter_no.writerow([filename[:-5], section, paragraph, llm_response])
+                    if llm_response == "POSSIBLE":
+                        csvwriter_possible.writerow([filename[:-5], section, paragraph, llm_response])                       
     with open("outputs/requirements.csv", 'w', newline='', encoding='utf-8') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=';')
         csvwriter.writerow(['File', 'Chapter', 'Requirement'])
         for filename, section, paragraph in requirements:
-            csvwriter.writerow([filename[:-5], section, paragraph, ask_llm(paragraph)])
+            csvwriter.writerow([filename[:-5], section, paragraph])
 
 with open('prompts.json', 'r') as f:
     prompts = json.load(f)
@@ -68,6 +77,6 @@ with open('prompts.json', 'r') as f:
 folder_path = "standards/22_standards"
 keywords = ["latency", "latencies"]
 ignored_sections = ["References", "Appendix", "Definitions", "Abbreviations"]
-output = "outputs/latency_paragraphs.csv"
+outputs = ["outputs/latency_paragraphs.csv", "outputs/latnecy_no_paragraphs.csv"]
 
-process_docx_files_in_folder(folder_path, keywords, output)
+process_docx_files_in_folder(folder_path, keywords, outputs)
