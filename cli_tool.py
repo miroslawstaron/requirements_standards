@@ -9,7 +9,7 @@ import requests
 
 # Function to interact with LLM
 def ask_llm(paragraph, model_name):
-    url = 'http://localhost:11434/api/generate'
+    url = 'http://localhost:11435/api/generate'
     data = {
         "model": model_name,
         "prompt": prompts['verify_context'],
