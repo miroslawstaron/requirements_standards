@@ -1,0 +1,9 @@
+{
+    "folder_path": "standards/22_standards",
+    "output_csv": "outputs/latency_paragraphs.csv",
+    "keywords": ["latency", "latencies"],
+    "ignored_sections": ["References", "Appendix", "Definitions", "Abbreviations"],
+    "model_name": "llama3.1:70b",
+    "verbose": false
+  }
+  

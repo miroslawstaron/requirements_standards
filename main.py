@@ -1,20 +1,26 @@
+import json
 import os
 import filter_docs
 
-# Global variables
-menu_open = True
-folder_path = "standards/22_standards"
-output_csv = "outputs/latency_paragraphs.csv"
-keywords = ["latency", "latencies"]
-ignored_sections = ["References", "Appendix", "Definitions", "Abbreviations"]
-model_name = "llama3.1:70b"
-verbose = False
+# File path for the configuration file
+CONFIG_FILE = "config.json"
+
+# Function to load the configuration from the JSON file
+def load_config():
+    with open(CONFIG_FILE, 'r') as f:
+        config = json.load(f)
+    return config
+
+# Function to save the configuration to the JSON file
+def save_config(config):
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(config, f, indent=4)
 
 def display_menu():
     print("Please select an option:")
-    print("1. Option 1: Configure the pipeline")
-    print("2. Option 2: Execute the pipeline")
-    print("3. Option 3: Help")
+    print("1. Configure the pipeline")
+    print("2. Execute the pipeline")
+    print("3. Help")
     print("4. Exit")
 
 def display_config_menu():
@@ -29,43 +35,45 @@ def display_config_menu():
     print("8. Exit")
 
 def configure_pipeline():
-    global folder_path, output_csv, keywords, ignored_sections, model_name, verbose
+    config = load_config()  # Load current configuration
+
     while True:
         display_config_menu()
         choice = input("Enter your choice (1-8): ")
         os.system('cls' if os.name == 'nt' else 'clear')
         if choice == '1':
-            folder_path = input("Enter the folder path: ")
+            config['folder_path'] = input("Enter the folder path: ")
         elif choice == '2':
-            output_csv = input("Enter the output CSV: ")
+            config['output_csv'] = input("Enter the output CSV: ")
         elif choice == '3':
-            keywords = input("Enter the keywords (comma-separated): ").split(",")
+            config['keywords'] = input("Enter the keywords (comma-separated): ").split(",")
         elif choice == '4':
-            ignored_sections = input("Enter the ignored sections (comma-separated): ").split(",")
+            config['ignored_sections'] = input("Enter the ignored sections (comma-separated): ").split(",")
         elif choice == '5':
-            model_name = input("Enter the model name: ")
+            config['model_name'] = input("Enter the model name: ")
         elif choice == '6':
             verbose_input = input("Enter verbose (True/False): ").lower()
-            verbose = verbose_input == 'true'
+            config['verbose'] = verbose_input == 'true'
         elif choice == '7':
-            print_config()
+            print_config(config)
         elif choice == '8':
             print("Exiting the configuration menu.")
+            save_config(config)  # Save updated configuration
             break
         else:
             print("Invalid choice. Please select a valid option (1-8).")
 
-def print_config():
+def print_config(config):
     print("Current Configuration:")
-    print(f"Folder path: {folder_path}")
-    print(f"Output CSV: {output_csv}")
-    print(f"Keywords: {keywords}")
-    print(f"Ignored sections: {ignored_sections}")
-    print(f"Model name: {model_name}")
-    print(f"Verbose: {verbose}")
+    print(f"Folder path: {config['folder_path']}")
+    print(f"Output CSV: {config['output_csv']}")
+    print(f"Keywords: {config['keywords']}")
+    print(f"Ignored sections: {config['ignored_sections']}")
+    print(f"Model name: {config['model_name']}")
+    print(f"Verbose: {config['verbose']}")
 
 def main():
-    global menu_open
+    menu_open = True
     while menu_open:
         display_menu()
         choice = input("Enter your choice (1-4): ")
@@ -77,7 +85,8 @@ def main():
             print("Executing filtering...")
 
             try:
-                filter_docs.execute_filtering(folder_path, keywords, output_csv, ignored_sections, model_name, verbose)
+                config = load_config()
+                filter_docs.execute_filtering(config)
             except Exception as e:
                 print(f"An error occurred: {e}")
                 print("Pipeline failed.")
