@@ -61,6 +61,7 @@ class FTPClient:
 # std_list is path to the JSON file that contains the name of the files alongside their version
 # local_path is path to the destination folder you want to download standards to
 def get_standards(ftp_client: FTPClient, std_list: str, local_path: str):
+    os.makedirs(local_path, exist_ok=True) # creating a directory if it does not exist.
     #open the json file
     with open(std_list, 'r') as series_list:
         series_data = json.load(series_list) # load the data from json file 
@@ -80,7 +81,7 @@ def get_standards(ftp_client: FTPClient, std_list: str, local_path: str):
         
         # search for the given files in the series folder
         for entry in ftp_client.list_directory():
-            for index in series_data["indexes"]: # TODO: Go through each index and if it matches one of the name.index change directory to it and decide to download which one based on version
+            for index in series_data["indexes"]: 
                 if(series_data["series_no"] + "."+ index["name"] in entry):
                     ftp_client.change_directory(series_data["series_no"] + "." + index["name"]) # change directory to the current standard folder
                     # check for the version that needs to be downloaded
@@ -94,9 +95,14 @@ def get_standards(ftp_client: FTPClient, std_list: str, local_path: str):
                         ftp_client.download(filename_, local_path)
                     
                     ftp_client.change_directory("..") # going back one directory up after being finished with the current file 
+        
+        # getting back to the original path after donwloading all the standards 
+        if(ftp_client.ftp.pwd() != directory_path):
+            ftp_client.change_directory('..')
             
 
 def unzip_all_in_folder(folder_path, extract_to): # This function is created by Chat-GPT
+    os.makedirs(extract_to, exist_ok=True)
     # List all files in the folder
     for file_name in os.listdir(folder_path):
         # Construct full file path
@@ -108,6 +114,9 @@ def unzip_all_in_folder(folder_path, extract_to): # This function is created by 
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
                 # Extract the files to the destination folder
                 zip_ref.extractall(extract_to)
+
+            # removing the zipped file after it is unzipped to the 'extract_to' path 
+            os.remove(file_path)
         else:
             print(f'Skipping {file_name}, not a zip file.')
 
@@ -116,16 +125,19 @@ def unzip_all_in_folder(folder_path, extract_to): # This function is created by 
 
 try:
     host = "www.3gpp.org"
-    directory_path = "Specs/archive"
+    directory_path = "Specs/archive" 
+    download_folder = 'downloaded_standards'
+    unzipped_folder = 'unzipped_standards'
+    standards = ['23_series.json']
     # create the connection to FTP server and change to the wanted directory
     ftp_client = FTPClient(host)
     ftp_client.change_directory(directory_path)
 
-    # get the standards
-    get_standards(ftp_client, '23_series.JSON', 'downloaded_standards')
+    for standard in standards:
+        get_standards(ftp_client, standard, download_folder)
 
     # unzip the downloaded standards 
-    unzip_all_in_folder('downloaded_standards', 'unzipped_standards')
+    unzip_all_in_folder(download_folder, unzipped_folder)
 finally:
     ftp_client.close_connection()
 
