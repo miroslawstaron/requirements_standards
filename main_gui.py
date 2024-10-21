@@ -25,14 +25,18 @@ output_var=tk.StringVar(value=config['output_csv'])
 keyword_var=tk.StringVar(value=config['keywords'][0])
 
 def run():
-    filter_docs.execute_filtering({
+    config = {
         'folder_path': path_var.get(),
-        'keywords': [keyword_var.get()],
         'output_csv': output_var.get(),
-        "ignored_sections": ["References", "Appendix", "Definitions", "Abbreviations"],
-        "model_name": "llama3.1:70b",
-        "verbose": False
-    })
+        'keywords': [keyword_var.get()],
+        'ignored_sections': ["References", "Appendix", "Definitions", "Abbreviations"],
+        'model_name': "llama3.1:70b",
+        'verbose': False
+    }
+    #save config to config.json
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(config, f)
+    filter_docs.execute_filtering(config)
 
 # Set window size
 width = config.get("width", 500)

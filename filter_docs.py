@@ -77,8 +77,6 @@ with open('prompts.json', 'r') as f:
     prompts = json.load(f)
 
 
-process_docx_files_in_folder(folder_path, keywords, outputs)
-
 def execute_filtering(config):
     folder_path = config['folder_path']
     keywords = config['keywords']
