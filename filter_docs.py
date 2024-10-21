@@ -77,6 +77,6 @@ with open('prompts.json', 'r') as f:
 folder_path = "standards/22_standards"
 keywords = ["latency", "latencies"]
 ignored_sections = ["References", "Appendix", "Definitions", "Abbreviations"]
-outputs = ["outputs/latency_paragraphs.csv", "outputs/latnecy_no_paragraphs.csv"]
+outputs = ["outputs/latency_paragraphs.csv", "outputs/latency_no_paragraphs.csv"]
 
 process_docx_files_in_folder(folder_path, keywords, outputs)
