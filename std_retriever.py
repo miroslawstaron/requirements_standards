@@ -10,6 +10,19 @@ import os
 import zipfile
 import pandas as pd 
 
+##############################################
+# Configuration variables
+host = 'www.3gpp.org'
+ftp_directory_path = 'Specs/archive' 
+download_folder_path = 'downloaded_standards'
+unzipped_folder_path = 'unzipped_standards'
+excel_spec_file = 'Specification_list.xlsx'
+standard_specs_folder_path = 'standards_specs'
+phrase = 'latency'
+
+##############################################
+#
+
 class FTPClient:
     def __init__(self, host, user='', passwd=''):
         self.host = host
@@ -101,7 +114,7 @@ def get_standards(ftp_client: FTPClient, std_list: str, local_path: str):
                     
                     ftp_client.change_directory('..') # going back one directory up after being finished with the current file 
         
-        # getting back to the original path after donwloading all the standards 
+        # getting back to the original path after downloading all the standards 
         if(ftp_client.ftp.pwd() != ftp_directory_path):
             ftp_client.change_directory('..')
             
@@ -187,28 +200,25 @@ def search_title(folder_path, xlsx_file, phrase=None): # folder_path: where json
 
 #################### script #########################
 
-try:
-    # TODO: Refactor all of the variable into json.config file 
-    host = 'www.3gpp.org'
-    ftp_directory_path = 'Specs/archive' 
-    download_folder_path = 'downloaded_standards'
-    unzipped_folder_path = 'unzipped_standards'
-    excel_spec_file = 'Specification_list.xlsx'
-    standard_specs_folder_path = 'standards_specs'
-    phrase = 'Metaverse'
-    # create the connection to FTP server and change to the wanted directory
-    ftp_client = FTPClient(host)
-    ftp_client.change_directory(ftp_directory_path)
+def main():
+    try:
+        # TODO: Refactor all of the variable into json.config file 
 
-    #* search by title if necessary
-    standards =search_title(standard_specs_folder_path, excel_spec_file)
+        # create the connection to FTP server and change to the wanted directory
+        ftp_client = FTPClient(host)
+        ftp_client.change_directory(ftp_directory_path)
 
-    for standard in standards:
-        get_standards(ftp_client, os.path.join(standard_specs_folder_path, standard) , download_folder_path)
+        #* search by title if necessary
+        standards =search_title(standard_specs_folder_path, excel_spec_file, phrase)
 
-    # unzip the downloaded standards 
-    unzip_all_in_folder(download_folder_path, unzipped_folder_path)
-finally:
-    ftp_client.close_connection()
+        for standard in standards:
+            get_standards(ftp_client, os.path.join(standard_specs_folder_path, standard) , download_folder_path)
+
+        # unzip the downloaded standards 
+        unzip_all_in_folder(download_folder_path, unzipped_folder_path)
+    finally:
+        ftp_client.close_connection()
 
 
+if __name__ == "__main__":
+    main()
