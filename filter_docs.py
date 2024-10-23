@@ -7,8 +7,11 @@ import requests
 import json
 import re
 
+global llm_ip
+llm_ip = "localhost:11435"
+
 def ask_llm(paragraph):
-    url = 'http://localhost:11435/api/generate'
+    url = f'http://{llm_ip}/api/generate'
     data = {
         "model": "llama3.1:70b",
         "prompt": prompts['verify_context'] + paragraph,
@@ -78,9 +81,10 @@ with open('prompts.json', 'r') as f:
 
 
 def execute_filtering(config):
+    llm_ip = config['llm_address']
     folder_path = config['folder_path']
     keywords = config['keywords']
-    output_csv = config['output_csv']
+    output_csv = config['latency_paragraphs']
     process_docx_files_in_folder(folder_path, keywords, output_csv, config)
 
 ########################################################################
