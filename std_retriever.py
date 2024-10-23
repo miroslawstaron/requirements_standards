@@ -190,15 +190,17 @@ try:
     ftp_directory_path = 'Specs/archive' 
     download_folder_path = 'downloaded_standards'
     unzipped_folder_path = 'unzipped_standards'
+    excel_spec_file = 'Specification_list.xlsx'
+    standard_specs_folder_path = 'standards_specs'
     # create the connection to FTP server and change to the wanted directory
     ftp_client = FTPClient(host)
     ftp_client.change_directory(ftp_directory_path)
 
     #* search by title if necessary
-    standards =search_title('standards_specs', 'Specification_list.xlsx')
+    standards =search_title(standard_specs_folder_path, excel_spec_file)
 
     for standard in standards:
-        get_standards(ftp_client, os.path.join('standards_specs', standard) , download_folder_path)
+        get_standards(ftp_client, os.path.join(standard_specs_folder_path, standard) , download_folder_path)
 
     # unzip the downloaded standards 
     unzip_all_in_folder(download_folder_path, unzipped_folder_path)
