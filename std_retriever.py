@@ -89,6 +89,9 @@ def get_standards(ftp_client: FTPClient, std_list: str, local_path: str):
                     # check for the version that needs to be downloaded
                     if(index['version'] == 'latest'):
                         all_versions = ftp_client.list_directory()
+                        if(len(all_versions) == 0):
+                            ftp_client.change_directory('..')
+                            continue
                         last_entry: str = all_versions[-1] # since in the 3Gpp files are organized by date latest is always the last entry of the directory
                         filename_ = last_entry.split()[-1] # Extract the name of the file from the entry
                         ftp_client.download(filename_, local_path)
@@ -192,6 +195,7 @@ try:
     unzipped_folder_path = 'unzipped_standards'
     excel_spec_file = 'Specification_list.xlsx'
     standard_specs_folder_path = 'standards_specs'
+    phrase = 'Metaverse'
     # create the connection to FTP server and change to the wanted directory
     ftp_client = FTPClient(host)
     ftp_client.change_directory(ftp_directory_path)
