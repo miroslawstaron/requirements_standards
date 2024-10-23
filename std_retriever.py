@@ -9,6 +9,7 @@ import re
 import os
 import zipfile
 import pandas as pd 
+import shutil
 
 ##############################################
 # Configuration variables
@@ -18,7 +19,7 @@ download_folder_path = 'downloaded_standards'
 unzipped_folder_path = 'unzipped_standards'
 excel_spec_file = 'Specification_list.xlsx'
 standard_specs_folder_path = 'standards_specs'
-phrase = 'latency'
+phrase = 'General packet radio'
 
 ##############################################
 #
@@ -216,6 +217,9 @@ def main():
 
         # unzip the downloaded standards 
         unzip_all_in_folder(download_folder_path, unzipped_folder_path)
+
+        # removing the standards_specs folder
+        shutil.rmtree(standard_specs_folder_path)
     finally:
         ftp_client.close_connection()
 
