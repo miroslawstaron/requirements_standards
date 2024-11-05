@@ -3,15 +3,17 @@ import requests
 import json
 from docx import Document
 from docx.shared import Inches
+from docx2python import docx2python
 import base64
 from PIL import Image
 from io import BytesIO, StringIO
 
-def ask_llm(encoded_image):
+def ask_llm(image_path):
+    encoded_image = base64.b64encode(open(image_path, "rb").read()).decode('utf-8')
     url = f'http://localhost:11435/api/generate'
     data = {
         "model": "minicpm-v",
-        "prompt": "Describe this sequence diagram, found in a 3GPP standard. Elicit as much specific information as possible.",
+        "prompt": "Check whether the image provided is a sequence diagram. If it is, provide a detailed description of the diagram, eliciting as much information as possible. Take into consideration solid and dotted lines whereever applicable.",
         "images": [encoded_image],
         "stream": False
         }
@@ -21,52 +23,40 @@ def ask_llm(encoded_image):
     return json_data['response']
 
 def extract_images_from_docx(docx_path, output_folder):
-    input_doc = Document(docx_path)
+    input_doc = docx2python(docx_path, output_folder, html=True)
     output_doc = Document()
-    current_section = None
-    rels = input_doc.part.rels
+    current_section = "No section"
 
-    for paragraphs in input_doc.paragraphs:
-        if paragraphs.style.name.startswith('Heading'):
-            current_section = paragraphs.text
-            print(current_section)
-        
-        for rel in rels:
-            if "image" in rels[rel].target_ref:
-                image = rels[rel].target_part.blob
-                img_name = os.path.basename(rels[rel].target_ref)
-                img_path = os.path.join(output_folder, img_name)
-                # print(img_path)
-                # with open(img_path, "wb") as img_file:
-                #     img_file.write(image)
-                # encode_images_to_base64(output_folder)
-                if current_section:
-                        output_doc.add_heading(current_section, level=1)
-                        current_section = None # Reset current_section
- 
-                # take the image and add it to the docx
-                # img_path = os.path.join(output_folder, img_name)
-                # output_doc.add_picture(img_path, width=Inches(6))
-                # print(f"Added image {img_name} to the document.")
+    for line in input_doc.text.splitlines():
+        if "<h2>" in line or "<h3>" in line:
+            current_section = line
+        if "media/image" in line:
+            img_name = line[10:].split('-')[0]
+            img_path = os.path.join(output_folder, img_name)
 
-                # encoded_image = base64.b64encode(image).decode('utf-8') 
-                bytes = BytesIO(image)    
-                img = Image.open(StringIO(bytes))  
-                output_doc.add_picture(img, width=Inches(6))
-                print(type(img))
+            new_name = img_name.replace(".emf", ".png")
+            new_path = os.path.join(output_folder, new_name)
+            try:
+                Image.open(img_path).save(output_folder + "/" + new_name)
+                os.remove(img_path)
 
-        output_doc.save(output_doc)
+                output_doc.add_heading(current_section[4:-4], level=1)
+                output_doc.add_picture(new_path, width=Inches(6))
+                output_doc.add_paragraph(ask_llm(new_path))
+                output_doc.add_page_break()
+            except Exception as e:
+                print(f"Error adding image {img_name} to the document: {e}")
+
+    output_doc.save("diagrams.docx")
                     
 
 
 
-def encode_images_to_base64(output_folder):
+def encode_images_to_base64(image_path):
     for img_name in os.listdir(output_folder):
         img_path = os.path.join(output_folder, img_name)
         if img_name.endswith(".emf"):
-            new_name = img_name.replace(".emf", ".png")
-            new_path = os.path.join(output_folder, new_name)
-            Image.open(img_path).save(output_folder + "/" + new_name)
+            
             with open(new_path, "rb") as img_file:
                 encoded_string = base64.b64encode(img_file.read()).decode('utf-8')
                 print(f"Finished encoding {new_name}.")
@@ -79,7 +69,7 @@ def encode_images_to_base64(output_folder):
 
 def main():
     standards_folder = "test_files"
-    output_folder = "extracted_images"
+    output_folder = "test_images"
     output_file = "extracted_images.docx"
     
     # if not os.path.exists(output_folder):
@@ -94,7 +84,7 @@ def main():
     # encode_images_to_base64(output_folder)
 
     print("Processing images")
-    extract_images_from_docx("test_files/23502-i20_l.docx", output_file)
+    extract_images_from_docx("test_files/23502-i20_l.docx", output_folder)
     
 
 if __name__ == "__main__":
